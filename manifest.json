@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-canvas-nodes-tools",
+  "name": "Canvas Nodes Tools",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.0",
+  "description": "Title-mode for canvas file nodes with inline editing, description badges, and a one-shot text-to-file conversion. Replaces canvas-node-description.",
+  "author": "Raulyn Polanco",
+  "authorUrl": "https://github.com/elsuper88",
+  "isDesktopOnly": false
+}
