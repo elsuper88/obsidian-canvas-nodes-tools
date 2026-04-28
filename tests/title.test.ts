@@ -16,7 +16,8 @@ describe("stripFrontmatter", () => {
   });
 
   it("handles empty frontmatter", () => {
-    expect(stripFrontmatter(`---\n---\nbody`)).toBe(`body`);
+    // A minimal valid frontmatter block requires a newline between the fences
+    expect(stripFrontmatter(`---\n\n---\nbody`)).toBe(`body`);
   });
 });
 

@@ -132,6 +132,9 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     if (!canvas) return;
     this.descriptionFeature.attachToCanvas(canvas);
     this.titleModeFeature.attachToCanvas(canvas);
+    // Order is load-bearing: headerLinkFeature MUST attach before inlineEditFeature
+    // because both register capture-phase dblclick listeners on wrapperEl and
+    // headerLinkFeature must intercept header clicks before inlineEditFeature does.
     this.headerLinkFeature.attachToCanvas(canvas);
     this.inlineEditFeature.attachToCanvas(canvas);
     this.popupMenuFeature.attachToCanvas(canvas);

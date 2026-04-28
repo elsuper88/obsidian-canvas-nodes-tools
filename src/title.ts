@@ -1,10 +1,10 @@
 // Pure title resolution: strip frontmatter, pick first line, or use frontmatter node_title.
 
 export function stripFrontmatter(content: string): string {
-  if (!content.startsWith("---")) return content;
-  const end = content.indexOf("\n---", 3);
-  if (end === -1) return content;
-  return content.slice(end + 4).replace(/^\n+/, "");
+  if (!/^---\r?\n/.test(content)) return content;
+  const m = content.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
+  if (!m) return content;
+  return content.slice(m[0].length).replace(/^\n+/, "");
 }
 
 export function firstNonEmptyLine(body: string): string | null {

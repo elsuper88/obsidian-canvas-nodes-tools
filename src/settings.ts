@@ -7,7 +7,6 @@ export interface CntSettings {
   defaultBadgeColor: string;
   badgePosition: "top-right" | "top-left" | "top-center";
   badgeHiddenByDefault: boolean;
-  titleModeOnByDefault: boolean;
   migrationNoticeShown: boolean;
 }
 
@@ -15,7 +14,6 @@ export const DEFAULT_SETTINGS: CntSettings = {
   defaultBadgeColor: "4",
   badgePosition: "top-right",
   badgeHiddenByDefault: false,
-  titleModeOnByDefault: true,
   migrationNoticeShown: false,
 };
 
@@ -62,19 +60,6 @@ export class CntSettingsTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-
-    containerEl.createEl("h3", { text: "Title mode" });
-
-    new Setting(containerEl)
-      .setName("Enable title-mode by default for new file nodes")
-      .addToggle((t) =>
-        t
-          .setValue(this.plugin.settings.titleModeOnByDefault)
-          .onChange(async (v) => {
-            this.plugin.settings.titleModeOnByDefault = v;
-            await this.plugin.saveSettings();
-          }),
-      );
 
     containerEl.createEl("h3", { text: "Description badge" });
 

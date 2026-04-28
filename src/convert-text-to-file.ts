@@ -1,9 +1,29 @@
 // Convert a selected text node into a real .md file in the canvas's directory.
 
-import { Notice, TFile } from "obsidian";
-import { sanitizeFilename, uniqueFilename } from "./sanitize";
+import { Notice } from "obsidian";
+import { sanitizeFilename } from "./sanitize";
 import type { CanvasMin, CanvasNodeMin } from "./canvas";
 import type CanvasNodesToolsPlugin from "../main";
+
+async function findAvailablePath(
+  plugin: CanvasNodesToolsPlugin,
+  dir: string,
+  baseSlug: string,
+): Promise<string> {
+  const buildPath = (slug: string) =>
+    dir.length > 0 && dir !== "/" ? `${dir}/${slug}.md` : `${slug}.md`;
+
+  let attempt = baseSlug;
+  let i = 2;
+  // Limit to 1000 iterations defensively
+  while (i < 1000) {
+    const candidate = buildPath(attempt);
+    if (!plugin.app.vault.getAbstractFileByPath(candidate)) return candidate;
+    attempt = `${baseSlug} ${i}`;
+    i++;
+  }
+  throw new Error("Couldn't find an available filename");
+}
 
 export async function convertTextNodeToFile(
   plugin: CanvasNodesToolsPlugin,
@@ -34,22 +54,13 @@ export async function convertTextNodeToFile(
   }
   const dir = canvasFile.parent?.path ?? "";
 
-  const taken = new Set<string>();
-  const folder = plugin.app.vault.getFolderByPath(dir);
-  if (folder) {
-    for (const child of folder.children) {
-      if (child instanceof TFile && child.extension === "md") {
-        taken.add(child.basename);
-      }
-    }
-  }
-  const finalSlug = uniqueFilename(slug, taken);
-  const targetPath = dir.length > 0 ? `${dir}/${finalSlug}.md` : `${finalSlug}.md`;
+  const targetPath = await findAvailablePath(plugin, dir, slug);
 
   const restBody = lines.slice(firstLineIdx + 1).join("\n").trim();
+  const yamlValue = JSON.stringify(cleanedTitle);
   const initial = [
     "---",
-    `node_title: "${cleanedTitle.replace(/"/g, '\\"')}"`,
+    `node_title: ${yamlValue}`,
     "---",
     "",
     `# ${cleanedTitle}`,
