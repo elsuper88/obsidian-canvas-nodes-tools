@@ -7,9 +7,12 @@ import {
   migrateFromOldPlugin,
   CntSettingsTab,
 } from "./src/settings";
+import { DescriptionFeature } from "./src/description";
+import type { CanvasViewMin } from "./src/canvas";
 
 export default class CanvasNodesToolsPlugin extends Plugin {
   settings: CntSettings = DEFAULT_SETTINGS;
+  descriptionFeature!: DescriptionFeature;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -17,6 +20,8 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     await this.saveSettings();
 
     this.addSettingTab(new CntSettingsTab(this.app, this));
+
+    this.descriptionFeature = new DescriptionFeature(this);
 
     this.app.workspace.onLayoutReady(() => this.scanCanvases());
     this.registerEvent(
@@ -45,7 +50,10 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     }
   }
 
-  private attachLeaf(_leaf: WorkspaceLeaf): void {
-    // Filled in by feature tasks.
+  private attachLeaf(leaf: WorkspaceLeaf): void {
+    const view = leaf.view as unknown as CanvasViewMin;
+    const canvas = view.canvas;
+    if (!canvas) return;
+    this.descriptionFeature.attachToCanvas(canvas);
   }
 }

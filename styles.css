@@ -1,0 +1,352 @@
+/* =====================================================================
+   Canvas Nodes Tools — badge styling
+
+   Renders the description above each canvas node when:
+   - The node has data-cnd-text="<label>"
+   - Optionally data-cnd-color="<preset|custom>"
+   - The wrapper does NOT have .cnd-hidden
+
+   Position is set on the wrapper: .cnd-pos-top-right (default),
+   .cnd-pos-top-left, .cnd-pos-top-center.
+   ===================================================================== */
+
+.canvas-node[data-cnd-text] {
+  --cnd-badge-bg: rgba(var(--color-accent-rgb), 0.12);
+  --cnd-badge-fg: var(--color-accent);
+}
+
+.canvas-node[data-cnd-text]::before {
+  content: attr(data-cnd-text);
+  position: absolute;
+  top: calc(-1 * var(--size-4-1) * var(--zoom-multiplier, 1));
+  transform-origin: bottom right;
+  transform: translate(0, -100%) scale(var(--zoom-multiplier, 1));
+  max-width: calc(100% / var(--zoom-multiplier, 1));
+  padding: var(--size-4-1) var(--size-4-2);
+  font-size: 0.95em;
+  font-weight: 500;
+  border-radius: var(--radius-s);
+  color: var(--cnd-badge-fg);
+  background-color: var(--cnd-badge-bg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+/* Position variants */
+.cnd-pos-top-right .canvas-node[data-cnd-text]::before {
+  right: 0;
+  left: auto;
+  transform-origin: bottom right;
+  transform: translate(0, -100%) scale(var(--zoom-multiplier, 1));
+}
+.cnd-pos-top-left .canvas-node[data-cnd-text]::before {
+  left: 0;
+  right: auto;
+  transform-origin: bottom left;
+  transform: translate(0, -100%) scale(var(--zoom-multiplier, 1));
+}
+.cnd-pos-top-center .canvas-node[data-cnd-text]::before {
+  left: 50%;
+  right: auto;
+  transform-origin: bottom center;
+  transform: translate(-50%, -100%) scale(var(--zoom-multiplier, 1));
+}
+
+/* Preset colors — map to Obsidian's canvas color tokens */
+.canvas-node[data-cnd-color="1"] {
+  --cnd-badge-fg: var(--color-red);
+  --cnd-badge-bg: rgba(var(--color-red-rgb), 0.12);
+}
+.canvas-node[data-cnd-color="2"] {
+  --cnd-badge-fg: var(--color-orange);
+  --cnd-badge-bg: rgba(var(--color-orange-rgb), 0.12);
+}
+.canvas-node[data-cnd-color="3"] {
+  --cnd-badge-fg: var(--color-yellow);
+  --cnd-badge-bg: rgba(var(--color-yellow-rgb), 0.12);
+}
+.canvas-node[data-cnd-color="4"] {
+  --cnd-badge-fg: var(--color-green);
+  --cnd-badge-bg: rgba(var(--color-green-rgb), 0.12);
+}
+.canvas-node[data-cnd-color="5"] {
+  --cnd-badge-fg: var(--color-cyan);
+  --cnd-badge-bg: rgba(var(--color-cyan-rgb), 0.12);
+}
+.canvas-node[data-cnd-color="6"] {
+  --cnd-badge-fg: var(--color-purple);
+  --cnd-badge-bg: rgba(var(--color-purple-rgb), 0.12);
+}
+
+/* Custom hex via inline --cnd-color */
+.canvas-node[data-cnd-color="custom"] {
+  --cnd-badge-fg: var(--cnd-color, var(--color-accent));
+  --cnd-badge-bg: color-mix(in srgb, var(--cnd-color, var(--color-accent)) 14%, transparent);
+}
+
+/* Global hide toggle */
+.canvas-wrapper.cnd-hidden .canvas-node[data-cnd-text]::before {
+  display: none;
+}
+
+/* Don't show the badge during presentation mode (Advanced Canvas
+   sets .presentation-mode on the wrapper). Defensive — no-op if
+   the class is absent. */
+.canvas-wrapper.presentation-mode .canvas-node[data-cnd-text]::before {
+  visibility: hidden;
+}
+
+/* Popup-menu button — match the existing icon button look */
+#cnt-popup-description-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+/* Card-menu toggle visual state when hidden */
+.canvas-card-menu-button#cnt-toggle-card {
+  cursor: pointer;
+}
+
+/* =====================================================================
+   Modal — Node description editor
+   ===================================================================== */
+
+.cnd-modal {
+  padding: var(--size-4-4);
+}
+
+.cnd-modal h3 {
+  margin: 0 0 var(--size-4-3) 0;
+  font-size: 1.15em;
+}
+
+/* Live preview */
+.cnd-preview-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-3);
+  padding: var(--size-4-3) var(--size-4-3);
+  margin-bottom: var(--size-4-4);
+  background: var(--background-secondary);
+  border-radius: var(--radius-m);
+  min-height: 56px;
+}
+
+.cnd-preview-label {
+  color: var(--text-muted);
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cnd-preview-badge {
+  padding: var(--size-4-1) var(--size-4-2);
+  border-radius: var(--radius-s);
+  font-size: 0.95em;
+  font-weight: 500;
+  color: var(--cnd-badge-fg, var(--color-accent));
+  background: var(--cnd-badge-bg, rgba(var(--color-accent-rgb), 0.12));
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cnd-preview-badge.is-empty {
+  opacity: 0.4;
+}
+
+.cnd-preview-badge[data-color="1"] {
+  --cnd-badge-fg: var(--color-red);
+  --cnd-badge-bg: rgba(var(--color-red-rgb), 0.12);
+}
+.cnd-preview-badge[data-color="2"] {
+  --cnd-badge-fg: var(--color-orange);
+  --cnd-badge-bg: rgba(var(--color-orange-rgb), 0.12);
+}
+.cnd-preview-badge[data-color="3"] {
+  --cnd-badge-fg: var(--color-yellow);
+  --cnd-badge-bg: rgba(var(--color-yellow-rgb), 0.12);
+}
+.cnd-preview-badge[data-color="4"] {
+  --cnd-badge-fg: var(--color-green);
+  --cnd-badge-bg: rgba(var(--color-green-rgb), 0.12);
+}
+.cnd-preview-badge[data-color="5"] {
+  --cnd-badge-fg: var(--color-cyan);
+  --cnd-badge-bg: rgba(var(--color-cyan-rgb), 0.12);
+}
+.cnd-preview-badge[data-color="6"] {
+  --cnd-badge-fg: var(--color-purple);
+  --cnd-badge-bg: rgba(var(--color-purple-rgb), 0.12);
+}
+.cnd-preview-badge[data-color="custom"] {
+  --cnd-badge-fg: var(--cnd-color, var(--color-accent));
+  --cnd-badge-bg: color-mix(in srgb, var(--cnd-color, var(--color-accent)) 14%, transparent);
+}
+
+/* Rows */
+.cnd-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  margin-bottom: var(--size-4-4);
+}
+
+.cnd-row-label {
+  font-weight: 600;
+  font-size: 0.95em;
+  color: var(--text-normal);
+}
+
+.cnd-text-input {
+  width: 100%;
+  padding: var(--size-4-2) var(--size-4-3);
+  font-size: 1em;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+.cnd-text-input:focus {
+  border-color: var(--interactive-accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.25);
+}
+
+/* Swatches */
+.cnd-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-2);
+}
+
+.cnd-modal .cnd-swatch {
+  --cnd-swatch-color: var(--color-accent);
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background-color: var(--cnd-swatch-color) !important;
+  background-image: none;
+  box-shadow: none;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  position: relative;
+}
+
+.cnd-modal .cnd-swatch:hover {
+  transform: scale(1.08);
+}
+
+.cnd-modal .cnd-swatch.is-active {
+  border-color: var(--text-on-accent, white);
+  box-shadow:
+    0 0 0 2px var(--background-primary),
+    0 0 0 4px var(--cnd-swatch-color) !important;
+}
+
+.cnd-modal .cnd-swatches .cnd-swatch[data-color="1"] { --cnd-swatch-color: var(--color-red); }
+.cnd-modal .cnd-swatches .cnd-swatch[data-color="2"] { --cnd-swatch-color: var(--color-orange); }
+.cnd-modal .cnd-swatches .cnd-swatch[data-color="3"] { --cnd-swatch-color: var(--color-yellow); }
+.cnd-modal .cnd-swatches .cnd-swatch[data-color="4"] { --cnd-swatch-color: var(--color-green); }
+.cnd-modal .cnd-swatches .cnd-swatch[data-color="5"] { --cnd-swatch-color: var(--color-cyan); }
+.cnd-modal .cnd-swatches .cnd-swatch[data-color="6"] { --cnd-swatch-color: var(--color-purple); }
+
+.cnd-modal .cnd-swatch-custom {
+  background-color: transparent !important;
+  background-image: linear-gradient(
+    135deg,
+    var(--color-red) 0%,
+    var(--color-yellow) 33%,
+    var(--color-green) 66%,
+    var(--color-purple) 100%
+  ) !important;
+  color: white;
+  font-weight: 700;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.cnd-modal .cnd-swatch-custom.is-active {
+  background-image: none !important;
+  background-color: var(--cnd-swatch-color, var(--color-accent)) !important;
+}
+
+.cnd-modal .cnd-swatch-custom.is-active span {
+  display: none;
+}
+
+/* Hex row */
+.cnd-hex-row.is-hidden {
+  display: none;
+}
+
+.cnd-hex-wrap {
+  display: flex;
+  gap: var(--size-4-2);
+  align-items: center;
+}
+
+.cnd-color-picker {
+  width: 40px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  background: transparent;
+}
+
+.cnd-hex-input {
+  flex: 1;
+  padding: var(--size-4-2) var(--size-4-3);
+  font-family: var(--font-monospace);
+  font-size: 0.95em;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+.cnd-hex-input:focus {
+  border-color: var(--interactive-accent);
+  outline: none;
+}
+
+/* Footer */
+.cnd-footer {
+  display: flex;
+  gap: var(--size-4-2);
+  justify-content: flex-end;
+  margin-top: var(--size-4-4);
+  padding-top: var(--size-4-3);
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.cnd-btn {
+  padding: var(--size-4-2) var(--size-4-4);
+  font-weight: 500;
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+}
+.cnd-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.cnd-btn-remove {
+  margin-right: auto;
+}
+
+.cnd-btn-save {
+  min-width: 90px;
+}
