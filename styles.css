@@ -392,3 +392,19 @@
 .cnd-btn-save {
   min-width: 90px;
 }
+
+/* Inline title edit */
+.canvas-node[data-cnt-title-mode="true"] .canvas-node-content.cnt-editing {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: -2px;
+  border-radius: var(--radius-s);
+  background-color: var(--background-primary);
+  cursor: text;
+  user-select: text;
+  display: block;
+  text-align: center;
+  padding: var(--size-4-3);
+}
+.canvas-node[data-cnt-title-mode="true"] .canvas-node-content.cnt-editing::before {
+  content: none;
+}

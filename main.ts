@@ -9,12 +9,14 @@ import {
 } from "./src/settings";
 import { DescriptionFeature } from "./src/description";
 import { TitleModeFeature } from "./src/title-mode";
+import { InlineEditFeature } from "./src/inline-edit";
 import type { CanvasViewMin } from "./src/canvas";
 
 export default class CanvasNodesToolsPlugin extends Plugin {
   settings: CntSettings = DEFAULT_SETTINGS;
   descriptionFeature!: DescriptionFeature;
   titleModeFeature!: TitleModeFeature;
+  inlineEditFeature!: InlineEditFeature;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -25,6 +27,7 @@ export default class CanvasNodesToolsPlugin extends Plugin {
 
     this.descriptionFeature = new DescriptionFeature(this);
     this.titleModeFeature = new TitleModeFeature(this);
+    this.inlineEditFeature = new InlineEditFeature(this);
 
     this.app.workspace.onLayoutReady(() => this.scanCanvases());
     this.registerEvent(
@@ -59,5 +62,6 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     if (!canvas) return;
     this.descriptionFeature.attachToCanvas(canvas);
     this.titleModeFeature.attachToCanvas(canvas);
+    this.inlineEditFeature.attachToCanvas(canvas);
   }
 }
