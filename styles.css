@@ -138,7 +138,11 @@
   background: var(--background-primary);
   border-radius: var(--radius-m);
   cursor: text;
-  pointer-events: auto;
+  /* Transparent to mouse events by default so Canvas receives clicks/drag
+     for the underlying node. Double-click is intercepted at the wrapper
+     (capture phase) so it still triggers inline edit. Only when actively
+     editing the overlay captures events to allow caret placement. */
+  pointer-events: none;
   z-index: 2;
 }
 
@@ -147,6 +151,7 @@
   outline-offset: -2px;
   background: var(--background-primary);
   user-select: text;
+  pointer-events: auto;
 }
 
 /* Popup-menu button — match the existing icon button look */
