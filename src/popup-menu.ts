@@ -51,7 +51,7 @@ export class PopupMenuFeature {
     btn.id = "cnt-popup-title-toggle";
     btn.classList.add("clickable-icon");
     setIcon(btn, isOn ? "text-cursor-input" : "book-open");
-    setTooltip(btn, isOn ? "Ver solo título" : "Ver contenido completo", {
+    setTooltip(btn, isOn ? "Ver contenido completo" : "Ver solo título", {
       placement: "top",
     });
     btn.addEventListener("click", (e) => {
