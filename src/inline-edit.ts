@@ -1,4 +1,4 @@
-// Inline edit of a file node's node_title via contenteditable on dblclick of the body.
+// Inline edit of a file node's node_title via contenteditable on the title overlay.
 
 import { TFile, Notice } from "obsidian";
 import type { CanvasMin, CanvasNodeMin } from "./canvas";
@@ -24,11 +24,17 @@ export class InlineEditFeature {
     const target = event.target as HTMLElement | null;
     if (!target) return;
 
-    // Header link → handled by header-link feature, ignore here.
+    // Header link → handled by header-link feature.
     if (target.closest(".markdown-embed-link, .canvas-node-label")) return;
 
-    const nodeEl = target.closest(".canvas-node[data-cnt-title-mode='true']") as HTMLElement | null;
+    const overlay = target.closest(".cnt-title-overlay") as HTMLElement | null;
+    const nodeEl =
+      (overlay?.parentElement?.classList.contains("canvas-node")
+        ? (overlay.parentElement as HTMLElement)
+        : null) ??
+      (target.closest(".canvas-node[data-cnt-title-mode='true']") as HTMLElement | null);
     if (!nodeEl) return;
+    if (nodeEl.getAttribute("data-cnt-title-mode") !== "true") return;
 
     const node = this.findNodeByEl(canvas, nodeEl);
     if (!node) return;
@@ -36,41 +42,39 @@ export class InlineEditFeature {
     const file = this.fileForNode(node);
     if (!file) return;
 
+    const editTarget = overlay ??
+      (nodeEl.querySelector(":scope > .cnt-title-overlay") as HTMLElement | null);
+    if (!editTarget) return;
+
     event.preventDefault();
     event.stopImmediatePropagation();
-    this.startEdit(node, file);
+    this.startEdit(editTarget, file);
   }
 
-  private startEdit(node: CanvasNodeMin, file: TFile): void {
-    const inner = node.nodeEl.querySelector(".canvas-node-content") as HTMLElement | null;
-    if (!inner) return;
-
-    const original = inner.getAttribute("data-cnt-title-text") ?? "";
-    inner.classList.add("cnt-editing");
-    inner.removeAttribute("data-cnt-title-text"); // hide ::before during edit
-    inner.contentEditable = "true";
-    inner.textContent = original;
+  private startEdit(overlay: HTMLElement, file: TFile): void {
+    const original = overlay.textContent ?? "";
+    overlay.contentEditable = "true";
+    overlay.classList.add("cnt-editing");
 
     const range = document.createRange();
-    range.selectNodeContents(inner);
+    range.selectNodeContents(overlay);
     const sel = window.getSelection();
     sel?.removeAllRanges();
     sel?.addRange(range);
-    inner.focus();
+    overlay.focus();
 
     let committed = false;
 
     const restore = (text: string) => {
-      inner.contentEditable = "false";
-      inner.classList.remove("cnt-editing");
-      inner.textContent = "";
-      inner.setAttribute("data-cnt-title-text", text);
+      overlay.contentEditable = "false";
+      overlay.classList.remove("cnt-editing");
+      overlay.textContent = text;
     };
 
     const commit = async () => {
       if (committed) return;
       committed = true;
-      const next = (inner.textContent ?? "").replace(/\n/g, " ").trim();
+      const next = (overlay.textContent ?? "").replace(/\n/g, " ").trim();
       try {
         await this.plugin.app.fileManager.processFrontMatter(file, (fm) => {
           if (next.length === 0) delete fm.node_title;
@@ -90,20 +94,20 @@ export class InlineEditFeature {
       restore(original);
     };
 
-    inner.addEventListener("keydown", (e: KeyboardEvent) => {
+    overlay.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
         e.stopPropagation();
-        inner.blur();
+        overlay.blur();
       } else if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
         cancel();
-        inner.blur();
+        overlay.blur();
       }
     });
 
-    inner.addEventListener("blur", () => void commit(), { once: true });
+    overlay.addEventListener("blur", () => void commit(), { once: true });
   }
 
   private findNodeByEl(canvas: CanvasMin, el: HTMLElement): CanvasNodeMin | null {

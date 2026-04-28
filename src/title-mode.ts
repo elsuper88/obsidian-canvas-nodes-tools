@@ -1,4 +1,4 @@
-// Title-mode: per-canvas attach, scan nodes, render title text via data attributes.
+// Title-mode: per-canvas attach, scan nodes, render title text in an overlay div.
 
 import { TFile } from "obsidian";
 import { resolveTitle, stripFrontmatter } from "./title";
@@ -6,7 +6,7 @@ import type { CanvasMin, CanvasNodeMin } from "./canvas";
 import type CanvasNodesToolsPlugin from "../main";
 
 const DATA_ENABLED = "data-cnt-title-mode";
-const DATA_TEXT = "data-cnt-title-text";
+const OVERLAY_CLASS = "cnt-title-overlay";
 
 export class TitleModeFeature {
   constructor(private plugin: CanvasNodesToolsPlugin) {}
@@ -20,7 +20,7 @@ export class TitleModeFeature {
     flag._cntTitleAttached = true;
     this.applyAll(canvas);
 
-    // Re-render titles when the file changes externally (frontmatter or first line).
+    // Re-render titles when the file changes externally.
     const evt = this.plugin.app.metadataCache.on("changed", (file) => {
       for (const [, node] of canvas.nodes) {
         if (this.fileForNode(node)?.path === file.path) {
@@ -42,19 +42,25 @@ export class TitleModeFeature {
     const file = this.fileForNode(node);
     const enabled = data.titleMode !== false && data.type === "file" && file !== null;
     const el = node.nodeEl;
-    const inner = el.querySelector(".canvas-node-content") as HTMLElement | null;
+    const existing = el.querySelector(`:scope > .${OVERLAY_CLASS}`) as HTMLElement | null;
 
     if (!enabled) {
       el.removeAttribute(DATA_ENABLED);
-      el.removeAttribute(DATA_TEXT);
-      inner?.removeAttribute(DATA_TEXT);
+      existing?.remove();
       return;
     }
 
     el.setAttribute(DATA_ENABLED, "true");
+    const overlay = existing ?? this.createOverlay(el);
     const title = await this.resolveForFile(file as TFile);
-    el.setAttribute(DATA_TEXT, title);
-    inner?.setAttribute(DATA_TEXT, title);
+    overlay.textContent = title;
+  }
+
+  private createOverlay(parent: HTMLElement): HTMLElement {
+    const overlay = document.createElement("div");
+    overlay.className = OVERLAY_CLASS;
+    parent.appendChild(overlay);
+    return overlay;
   }
 
   private fileForNode(node: CanvasNodeMin): TFile | null {

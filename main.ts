@@ -12,6 +12,7 @@ import { TitleModeFeature } from "./src/title-mode";
 import { InlineEditFeature } from "./src/inline-edit";
 import { HeaderLinkFeature } from "./src/header-link";
 import { PopupMenuFeature } from "./src/popup-menu";
+import { ContextMenuFeature } from "./src/context-menu";
 import { convertTextNodeToFile } from "./src/convert-text-to-file";
 import type { CanvasViewMin, CanvasMin, CanvasNodeMin } from "./src/canvas";
 
@@ -22,6 +23,7 @@ export default class CanvasNodesToolsPlugin extends Plugin {
   inlineEditFeature!: InlineEditFeature;
   headerLinkFeature!: HeaderLinkFeature;
   popupMenuFeature!: PopupMenuFeature;
+  contextMenuFeature!: ContextMenuFeature;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -35,6 +37,8 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     this.headerLinkFeature = new HeaderLinkFeature(this);
     this.inlineEditFeature = new InlineEditFeature(this);
     this.popupMenuFeature = new PopupMenuFeature(this);
+    this.contextMenuFeature = new ContextMenuFeature(this);
+    this.contextMenuFeature.register();
 
     this.app.workspace.onLayoutReady(() => this.scanCanvases());
     this.registerEvent(

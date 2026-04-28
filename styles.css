@@ -102,34 +102,10 @@
    Title-mode for file nodes
    ===================================================================== */
 
-.canvas-node[data-cnt-title-mode="true"] .canvas-node-content > * {
-  display: none;
-}
-
-.canvas-node[data-cnt-title-mode="true"] .canvas-node-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 0 var(--size-4-3);
-}
-
-.canvas-node[data-cnt-title-mode="true"] .canvas-node-content::before {
-  content: attr(data-cnt-title-text);
-  display: block;
-  width: 100%;
-  font-size: 1.05em;
-  font-weight: 600;
-  color: var(--text-normal);
-  white-space: normal;
-  overflow-wrap: anywhere;
-  pointer-events: auto;
-  cursor: text;
-}
-
-/* Hide the embed body content but keep the link header visible (small) */
-.canvas-node[data-cnt-title-mode="true"] .markdown-embed > *:not(.markdown-embed-link) {
-  display: none;
+/* Hide the embed body but keep the header link visible. */
+.canvas-node[data-cnt-title-mode="true"] .markdown-embed-content,
+.canvas-node[data-cnt-title-mode="true"] .markdown-preview-view {
+  visibility: hidden;
 }
 
 .canvas-node[data-cnt-title-mode="true"] .markdown-embed-link {
@@ -137,7 +113,40 @@
   position: absolute;
   top: 6px;
   right: 8px;
+  z-index: 3;
+}
+
+/* Title overlay rendered by the plugin as a real <div>. */
+.canvas-node > .cnt-title-overlay {
+  display: none;
+}
+
+.canvas-node[data-cnt-title-mode="true"] > .cnt-title-overlay {
+  display: flex;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  padding: var(--size-4-3) var(--size-4-4);
+  text-align: center;
+  font-size: 1.05em;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-normal);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  background: var(--background-primary);
+  border-radius: var(--radius-m);
+  cursor: text;
+  pointer-events: auto;
   z-index: 2;
+}
+
+.canvas-node[data-cnt-title-mode="true"] > .cnt-title-overlay.cnt-editing {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: -2px;
+  background: var(--background-primary);
+  user-select: text;
 }
 
 /* Popup-menu button — match the existing icon button look */
@@ -393,18 +402,4 @@
   min-width: 90px;
 }
 
-/* Inline title edit */
-.canvas-node[data-cnt-title-mode="true"] .canvas-node-content.cnt-editing {
-  outline: 2px solid var(--interactive-accent);
-  outline-offset: -2px;
-  border-radius: var(--radius-s);
-  background-color: var(--background-primary);
-  cursor: text;
-  user-select: text;
-  display: block;
-  text-align: center;
-  padding: var(--size-4-3);
-}
-.canvas-node[data-cnt-title-mode="true"] .canvas-node-content.cnt-editing::before {
-  content: none;
-}
+/* (legacy block removed — see .cnt-title-overlay rules above) */
