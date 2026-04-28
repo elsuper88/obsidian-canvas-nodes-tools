@@ -52,6 +52,9 @@ export class TitleModeFeature {
 
     el.setAttribute(DATA_ENABLED, "true");
     const overlay = existing ?? this.createOverlay(el);
+    // Don't replace text while the overlay is being edited — it would clobber
+    // the user's input and can re-trigger blur, leading to an event loop.
+    if (overlay.classList.contains("cnt-editing")) return;
     const title = await this.resolveForFile(file as TFile);
     overlay.textContent = title;
   }

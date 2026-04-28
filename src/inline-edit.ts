@@ -94,14 +94,22 @@ export class InlineEditFeature {
       restore(original);
     };
 
+    // Stop the canvas drag/selection logic from interfering while editing.
+    const swallow = (e: Event) => e.stopPropagation();
+    overlay.addEventListener("mousedown", swallow);
+    overlay.addEventListener("mouseup", swallow);
+    overlay.addEventListener("click", swallow);
+    overlay.addEventListener("dblclick", swallow);
+    overlay.addEventListener("input", swallow);
+    overlay.addEventListener("paste", swallow);
+
     overlay.addEventListener("keydown", (e: KeyboardEvent) => {
+      e.stopPropagation();
       if (e.key === "Enter") {
         e.preventDefault();
-        e.stopPropagation();
         overlay.blur();
       } else if (e.key === "Escape") {
         e.preventDefault();
-        e.stopPropagation();
         cancel();
         overlay.blur();
       }
