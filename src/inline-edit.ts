@@ -53,20 +53,27 @@ export class InlineEditFeature {
 
   private startEdit(overlay: HTMLElement, file: TFile): void {
     const original = overlay.textContent ?? "";
-    overlay.contentEditable = "true";
     overlay.classList.add("cnt-editing");
+    overlay.contentEditable = "true";
+    overlay.tabIndex = 0;
+    overlay.spellcheck = false;
+    overlay.style.userSelect = "text";
 
-    const range = document.createRange();
-    range.selectNodeContents(overlay);
-    const sel = window.getSelection();
-    sel?.removeAllRanges();
-    sel?.addRange(range);
     overlay.focus();
+    requestAnimationFrame(() => {
+      const range = document.createRange();
+      range.selectNodeContents(overlay);
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+    });
 
     let committed = false;
 
     const restore = (text: string) => {
       overlay.contentEditable = "false";
+      overlay.style.userSelect = "";
+      overlay.removeAttribute("tabindex");
       overlay.classList.remove("cnt-editing");
       overlay.textContent = text;
     };
@@ -94,15 +101,9 @@ export class InlineEditFeature {
       restore(original);
     };
 
-    // Stop the canvas drag/selection logic from interfering while editing.
-    const swallow = (e: Event) => e.stopPropagation();
-    overlay.addEventListener("mousedown", swallow);
-    overlay.addEventListener("mouseup", swallow);
-    overlay.addEventListener("click", swallow);
-    overlay.addEventListener("dblclick", swallow);
-    overlay.addEventListener("input", swallow);
-    overlay.addEventListener("paste", swallow);
-
+    // Block keyboard shortcuts (Canvas listens for delete, ctrl+a, etc) but
+    // do NOT swallow mouse events — the browser needs them to position the
+    // caret inside the contenteditable.
     overlay.addEventListener("keydown", (e: KeyboardEvent) => {
       e.stopPropagation();
       if (e.key === "Enter") {
