@@ -11,7 +11,7 @@ import { DescriptionFeature } from "./src/description";
 import { TitleModeFeature } from "./src/title-mode";
 import { InlineEditFeature } from "./src/inline-edit";
 import { HeaderLinkFeature } from "./src/header-link";
-import type { CanvasViewMin } from "./src/canvas";
+import type { CanvasViewMin, CanvasMin, CanvasNodeMin } from "./src/canvas";
 
 export default class CanvasNodesToolsPlugin extends Plugin {
   settings: CntSettings = DEFAULT_SETTINGS;
@@ -39,6 +39,33 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", () => this.scanCanvases()),
     );
+
+    this.addCommand({
+      id: "toggle-title-mode",
+      name: "Toggle title-mode for selected file node",
+      hotkeys: [{ modifiers: ["Mod"], key: "l" }],
+      checkCallback: (checking) => {
+        const canvas = this.getActiveCanvas();
+        if (!canvas) return false;
+        const node = this.getSingleSelectedNode(canvas);
+        if (!node) return false;
+        const data = node.getData();
+        if (data.type !== "file") return false;
+        if (checking) return true;
+
+        const isCurrentlyOff = data.titleMode === false;
+        const newData = { ...data };
+        if (isCurrentlyOff) {
+          delete newData.titleMode;
+        } else {
+          newData.titleMode = false;
+        }
+        node.setData(newData);
+        void this.titleModeFeature.applyToNode(node);
+        canvas.requestSave?.();
+        return true;
+      },
+    });
   }
 
   onunload(): void {
@@ -51,6 +78,26 @@ export default class CanvasNodesToolsPlugin extends Plugin {
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
+  }
+
+  private getActiveCanvas(): CanvasMin | null {
+    for (const leaf of this.app.workspace.getLeavesOfType("canvas")) {
+      if (leaf === this.app.workspace.activeLeaf) {
+        const view = leaf.view as unknown as CanvasViewMin;
+        return view.canvas ?? null;
+      }
+    }
+    return null;
+  }
+
+  private getSingleSelectedNode(canvas: CanvasMin): CanvasNodeMin | null {
+    if (!canvas.selection || canvas.selection.size !== 1) return null;
+    for (const item of canvas.selection) {
+      const cand = item as Partial<CanvasNodeMin> & { path?: unknown };
+      if (cand.path !== undefined) return null;
+      if (typeof cand.getData === "function") return cand as CanvasNodeMin;
+    }
+    return null;
   }
 
   private scanCanvases(): void {
