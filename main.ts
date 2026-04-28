@@ -11,6 +11,7 @@ import { DescriptionFeature } from "./src/description";
 import { TitleModeFeature } from "./src/title-mode";
 import { InlineEditFeature } from "./src/inline-edit";
 import { HeaderLinkFeature } from "./src/header-link";
+import { convertTextNodeToFile } from "./src/convert-text-to-file";
 import type { CanvasViewMin, CanvasMin, CanvasNodeMin } from "./src/canvas";
 
 export default class CanvasNodesToolsPlugin extends Plugin {
@@ -63,6 +64,22 @@ export default class CanvasNodesToolsPlugin extends Plugin {
         node.setData(newData);
         void this.titleModeFeature.applyToNode(node);
         canvas.requestSave?.();
+        return true;
+      },
+    });
+
+    this.addCommand({
+      id: "convert-text-to-file",
+      name: "Convert text node to .md file",
+      hotkeys: [{ modifiers: ["Mod"], key: "k" }],
+      checkCallback: (checking) => {
+        const canvas = this.getActiveCanvas();
+        if (!canvas) return false;
+        const node = this.getSingleSelectedNode(canvas);
+        if (!node) return false;
+        if (node.getData().type !== "text") return false;
+        if (checking) return true;
+        void convertTextNodeToFile(this, canvas, node);
         return true;
       },
     });
