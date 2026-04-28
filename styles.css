@@ -98,6 +98,48 @@
   visibility: hidden;
 }
 
+/* =====================================================================
+   Title-mode for file nodes
+   ===================================================================== */
+
+.canvas-node[data-cnt-title-mode="true"] .canvas-node-content > * {
+  display: none;
+}
+
+.canvas-node[data-cnt-title-mode="true"] .canvas-node-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 var(--size-4-3);
+}
+
+.canvas-node[data-cnt-title-mode="true"] .canvas-node-content::before {
+  content: attr(data-cnt-title-text);
+  display: block;
+  width: 100%;
+  font-size: 1.05em;
+  font-weight: 600;
+  color: var(--text-normal);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+  cursor: text;
+}
+
+/* Hide the embed body content but keep the link header visible (small) */
+.canvas-node[data-cnt-title-mode="true"] .markdown-embed > *:not(.markdown-embed-link) {
+  display: none;
+}
+
+.canvas-node[data-cnt-title-mode="true"] .markdown-embed-link {
+  display: flex;
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 2;
+}
+
 /* Popup-menu button — match the existing icon button look */
 #cnt-popup-description-btn {
   background: transparent;

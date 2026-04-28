@@ -8,11 +8,13 @@ import {
   CntSettingsTab,
 } from "./src/settings";
 import { DescriptionFeature } from "./src/description";
+import { TitleModeFeature } from "./src/title-mode";
 import type { CanvasViewMin } from "./src/canvas";
 
 export default class CanvasNodesToolsPlugin extends Plugin {
   settings: CntSettings = DEFAULT_SETTINGS;
   descriptionFeature!: DescriptionFeature;
+  titleModeFeature!: TitleModeFeature;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -22,6 +24,7 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     this.addSettingTab(new CntSettingsTab(this.app, this));
 
     this.descriptionFeature = new DescriptionFeature(this);
+    this.titleModeFeature = new TitleModeFeature(this);
 
     this.app.workspace.onLayoutReady(() => this.scanCanvases());
     this.registerEvent(
@@ -55,5 +58,6 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     const canvas = view.canvas;
     if (!canvas) return;
     this.descriptionFeature.attachToCanvas(canvas);
+    this.titleModeFeature.attachToCanvas(canvas);
   }
 }
