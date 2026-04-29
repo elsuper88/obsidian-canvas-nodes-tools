@@ -413,10 +413,18 @@
   transform: translate(0, 100%) scale(var(--zoom-multiplier, 1));
 }
 
-/* Hide the last paragraph of a text node's rendered content if it consists
-   solely of a single internal link, AND the node is marked as having a
-   plugin-managed link (so we don't accidentally hide user-authored wikilinks). */
-.canvas-node[data-cnt-link-hidden="true"] .canvas-node-content .markdown-rendered > p:last-child:has(> a.internal-link:only-child),
-.canvas-node[data-cnt-link-hidden="true"] .canvas-node-content .markdown-preview-section > div:last-child > p:has(> a.internal-link:only-child) {
-  display: none;
+/* Hide the last block of a text node's rendered content if it contains an
+   internal link, AND the node is marked as having a plugin-managed link
+   (so we don't accidentally hide user-authored wikilinks).
+   In Obsidian's renderer, paragraphs are wrapped in .el-p containers
+   inside .markdown-preview-section. We hide the LAST such block when it
+   contains an internal link. */
+.canvas-node[data-cnt-link-hidden="true"] .canvas-node-content .markdown-preview-section > *:last-of-type:has(a.internal-link) {
+  display: none !important;
+}
+
+/* Fallback selectors for older or alternative renderer paths. */
+.canvas-node[data-cnt-link-hidden="true"] .canvas-node-content .markdown-rendered > p:last-child:has(a.internal-link),
+.canvas-node[data-cnt-link-hidden="true"] .canvas-node-content > p:last-child:has(a.internal-link) {
+  display: none !important;
 }
