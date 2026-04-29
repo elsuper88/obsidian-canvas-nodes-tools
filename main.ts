@@ -27,7 +27,10 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     this.addCommand({
       id: "link-note",
       name: "Enlazar nota al text node seleccionado",
-      hotkeys: [{ modifiers: ["Mod"], key: "k" }],
+      // Cmd+K is taken by Obsidian's built-in editor:insert-link command,
+      // and the editor scope intercepts it before any plugin hotkey can fire.
+      // Cmd+Shift+K has no default binding and is reachable across views.
+      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "k" }],
       checkCallback: (checking) => {
         const canvas = this.getActiveCanvas();
         if (!canvas) return false;
