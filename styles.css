@@ -98,62 +98,6 @@
   visibility: hidden;
 }
 
-/* =====================================================================
-   Title-mode for file nodes
-   ===================================================================== */
-
-/* Hide the embed body but keep the header link visible. */
-.canvas-node[data-cnt-title-mode="true"] .markdown-embed-content,
-.canvas-node[data-cnt-title-mode="true"] .markdown-preview-view {
-  visibility: hidden;
-}
-
-.canvas-node[data-cnt-title-mode="true"] .markdown-embed-link {
-  display: flex;
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  z-index: 3;
-}
-
-/* Title overlay rendered by the plugin as a real <div>. */
-.canvas-node > .cnt-title-overlay {
-  display: none;
-}
-
-.canvas-node[data-cnt-title-mode="true"] > .cnt-title-overlay {
-  display: flex;
-  position: absolute;
-  inset: 0;
-  align-items: center;
-  justify-content: center;
-  padding: var(--size-4-3) var(--size-4-4);
-  text-align: center;
-  font-size: 1.05em;
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--text-normal);
-  white-space: normal;
-  overflow-wrap: anywhere;
-  background: var(--background-primary);
-  border-radius: var(--radius-m);
-  cursor: text;
-  /* Transparent to mouse events by default so Canvas receives clicks/drag
-     for the underlying node. Double-click is intercepted at the wrapper
-     (capture phase) so it still triggers inline edit. Only when actively
-     editing the overlay captures events to allow caret placement. */
-  pointer-events: none;
-  z-index: 2;
-}
-
-.canvas-node[data-cnt-title-mode="true"] > .cnt-title-overlay.cnt-editing {
-  outline: 2px solid var(--interactive-accent);
-  outline-offset: -2px;
-  background: var(--background-primary);
-  user-select: text;
-  pointer-events: auto;
-}
-
 /* Popup-menu button — match the existing icon button look */
 #cnt-popup-description-btn {
   background: transparent;
@@ -407,4 +351,50 @@
   min-width: 90px;
 }
 
-/* (legacy block removed — see .cnt-title-overlay rules above) */
+/* =====================================================================
+   Linked notes — small pill at the corner of the node
+   ===================================================================== */
+
+.canvas-node > .cnt-link-pill {
+  display: none;
+}
+
+.canvas-node[data-cnt-link-hidden="true"] > .cnt-link-pill {
+  display: inline-flex;
+  align-items: center;
+  position: absolute;
+  z-index: 4;
+  padding: 2px 8px;
+  font-size: 0.72em;
+  font-weight: 500;
+  line-height: 1.2;
+  background: var(--background-secondary);
+  color: var(--text-accent);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  cursor: pointer;
+  pointer-events: auto;
+  max-width: 60%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.canvas-node[data-cnt-link-hidden="true"] > .cnt-link-pill.is-unresolved {
+  color: var(--text-error);
+  border-style: dashed;
+}
+
+/* Position variants */
+.canvas-node[data-cnt-link-pos="top-right"] > .cnt-link-pill { top: 6px; right: 8px; }
+.canvas-node[data-cnt-link-pos="top-left"] > .cnt-link-pill { top: 6px; left: 8px; }
+.canvas-node[data-cnt-link-pos="bottom-right"] > .cnt-link-pill { bottom: 6px; right: 8px; }
+.canvas-node[data-cnt-link-pos="bottom-left"] > .cnt-link-pill { bottom: 6px; left: 8px; }
+
+/* Hide the last paragraph of a text node's rendered content if it consists
+   solely of a single internal link, AND the node is marked as having a
+   plugin-managed link (so we don't accidentally hide user-authored wikilinks). */
+.canvas-node[data-cnt-link-hidden="true"] .canvas-node-content .markdown-rendered > p:last-child:has(> a.internal-link:only-child),
+.canvas-node[data-cnt-link-hidden="true"] .canvas-node-content .markdown-preview-section > div:last-child > p:has(> a.internal-link:only-child) {
+  display: none;
+}

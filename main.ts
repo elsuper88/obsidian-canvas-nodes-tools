@@ -8,22 +8,15 @@ import {
   CntSettingsTab,
 } from "./src/settings";
 import { DescriptionFeature } from "./src/description";
-import { TitleModeFeature } from "./src/title-mode";
-import { InlineEditFeature } from "./src/inline-edit";
-import { HeaderLinkFeature } from "./src/header-link";
+import { LinkedNotesFeature } from "./src/linked-notes";
 import { PopupMenuFeature } from "./src/popup-menu";
-import { ContextMenuFeature } from "./src/context-menu";
-import { convertTextNodeToFile } from "./src/convert-text-to-file";
 import type { CanvasViewMin, CanvasMin, CanvasNodeMin } from "./src/canvas";
 
 export default class CanvasNodesToolsPlugin extends Plugin {
   settings: CntSettings = DEFAULT_SETTINGS;
   descriptionFeature!: DescriptionFeature;
-  titleModeFeature!: TitleModeFeature;
-  inlineEditFeature!: InlineEditFeature;
-  headerLinkFeature!: HeaderLinkFeature;
+  linkedNotesFeature!: LinkedNotesFeature;
   popupMenuFeature!: PopupMenuFeature;
-  contextMenuFeature!: ContextMenuFeature;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -33,12 +26,8 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     this.addSettingTab(new CntSettingsTab(this.app, this));
 
     this.descriptionFeature = new DescriptionFeature(this);
-    this.titleModeFeature = new TitleModeFeature(this);
-    this.headerLinkFeature = new HeaderLinkFeature(this);
-    this.inlineEditFeature = new InlineEditFeature(this);
+    this.linkedNotesFeature = new LinkedNotesFeature(this);
     this.popupMenuFeature = new PopupMenuFeature(this);
-    this.contextMenuFeature = new ContextMenuFeature(this);
-    this.contextMenuFeature.register();
 
     this.app.workspace.onLayoutReady(() => this.scanCanvases());
     this.registerEvent(
@@ -49,35 +38,8 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     );
 
     this.addCommand({
-      id: "toggle-title-mode",
-      name: "Toggle title-mode for selected file node",
-      hotkeys: [{ modifiers: ["Mod"], key: "l" }],
-      checkCallback: (checking) => {
-        const canvas = this.getActiveCanvas();
-        if (!canvas) return false;
-        const node = this.getSingleSelectedNode(canvas);
-        if (!node) return false;
-        const data = node.getData();
-        if (data.type !== "file") return false;
-        if (checking) return true;
-
-        const isCurrentlyOff = data.titleMode === false;
-        const newData = { ...data };
-        if (isCurrentlyOff) {
-          delete newData.titleMode;
-        } else {
-          newData.titleMode = false;
-        }
-        node.setData(newData);
-        void this.titleModeFeature.applyToNode(node);
-        canvas.requestSave?.();
-        return true;
-      },
-    });
-
-    this.addCommand({
-      id: "convert-text-to-file",
-      name: "Convert text node to .md file",
+      id: "link-note",
+      name: "Enlazar nota al text node seleccionado",
       hotkeys: [{ modifiers: ["Mod"], key: "k" }],
       checkCallback: (checking) => {
         const canvas = this.getActiveCanvas();
@@ -86,7 +48,7 @@ export default class CanvasNodesToolsPlugin extends Plugin {
         if (!node) return false;
         if (node.getData().type !== "text") return false;
         if (checking) return true;
-        void convertTextNodeToFile(this, canvas, node);
+        this.linkedNotesFeature.openSwitcher(canvas, node);
         return true;
       },
     });
@@ -135,12 +97,7 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     const canvas = view.canvas;
     if (!canvas) return;
     this.descriptionFeature.attachToCanvas(canvas);
-    this.titleModeFeature.attachToCanvas(canvas);
-    // Order is load-bearing: headerLinkFeature MUST attach before inlineEditFeature
-    // because both register capture-phase dblclick listeners on wrapperEl and
-    // headerLinkFeature must intercept header clicks before inlineEditFeature does.
-    this.headerLinkFeature.attachToCanvas(canvas);
-    this.inlineEditFeature.attachToCanvas(canvas);
+    this.linkedNotesFeature.attachToCanvas(canvas);
     this.popupMenuFeature.attachToCanvas(canvas);
   }
 }

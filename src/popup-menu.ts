@@ -1,9 +1,10 @@
 // Inject extra buttons in the canvas popup menu based on node type.
+// Currently: only the "Quitar enlace" (unlink) button for text nodes with a cntLinks field.
+// The description tag button is injected by description.ts directly.
 
 import { setIcon, setTooltip } from "obsidian";
 import type { CanvasMin, CanvasNodeMin } from "./canvas";
 import type CanvasNodesToolsPlugin from "../main";
-import { convertTextNodeToFile } from "./convert-text-to-file";
 
 export class PopupMenuFeature {
   constructor(private plugin: CanvasNodesToolsPlugin) {}
@@ -27,62 +28,34 @@ export class PopupMenuFeature {
     if (menuEl.children.length === 0) return;
 
     const node = this.singleSelected(canvas);
-    this.removeIfExists(menuEl, "cnt-popup-title-toggle");
-    this.removeIfExists(menuEl, "cnt-popup-text-to-file");
+    this.removeIfExists(menuEl, "cnt-popup-unlink");
 
     if (!node) return;
     const data = node.getData();
 
-    if (data.type === "file") {
-      this.injectTitleToggle(menuEl, canvas, node);
-    } else if (data.type === "text") {
-      this.injectTextToFile(menuEl, canvas, node);
+    if (
+      data.type === "text" &&
+      Array.isArray(data.cntLinks) &&
+      (data.cntLinks as string[]).length > 0
+    ) {
+      this.injectUnlinkButton(menuEl, canvas, node);
     }
   }
 
-  private injectTitleToggle(
+  private injectUnlinkButton(
     menuEl: HTMLElement,
     canvas: CanvasMin,
     node: CanvasNodeMin,
   ): void {
-    const data = node.getData();
-    const isOn = data.titleMode !== false;
     const btn = document.createElement("button");
-    btn.id = "cnt-popup-title-toggle";
+    btn.id = "cnt-popup-unlink";
     btn.classList.add("clickable-icon");
-    setIcon(btn, isOn ? "text-cursor-input" : "book-open");
-    setTooltip(btn, isOn ? "Ver contenido completo" : "Ver solo título", {
-      placement: "top",
-    });
+    setIcon(btn, "unlink");
+    setTooltip(btn, "Quitar enlace", { placement: "top" });
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const newData = { ...node.getData() };
-      if (newData.titleMode === false) {
-        delete newData.titleMode;
-      } else {
-        newData.titleMode = false;
-      }
-      node.setData(newData);
-      void this.plugin.titleModeFeature.applyToNode(node);
-      canvas.requestSave?.();
+      void this.plugin.linkedNotesFeature.removeLink(canvas, node);
       this.refresh(canvas);
-    });
-    menuEl.appendChild(btn);
-  }
-
-  private injectTextToFile(
-    menuEl: HTMLElement,
-    canvas: CanvasMin,
-    node: CanvasNodeMin,
-  ): void {
-    const btn = document.createElement("button");
-    btn.id = "cnt-popup-text-to-file";
-    btn.classList.add("clickable-icon");
-    setIcon(btn, "file-plus");
-    setTooltip(btn, "Convertir a nota .md", { placement: "top" });
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      void convertTextNodeToFile(this.plugin, canvas, node);
     });
     menuEl.appendChild(btn);
   }

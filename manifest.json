@@ -1,9 +1,9 @@
 {
   "id": "obsidian-canvas-nodes-tools",
   "name": "Canvas Nodes Tools",
-  "version": "1.0.4",
+  "version": "2.0.0",
   "minAppVersion": "1.5.0",
-  "description": "Title-mode for canvas file nodes with inline editing, description badges, and a one-shot text-to-file conversion. Replaces canvas-node-description.",
+  "description": "Description badges and linked-notes pill for canvas text nodes. Cmd+K links a .md file to a text node; the link is a real outbound wikilink visible in outgoing-links sidebar.",
   "author": "Raulyn Polanco",
   "authorUrl": "https://github.com/elsuper88",
   "isDesktopOnly": false

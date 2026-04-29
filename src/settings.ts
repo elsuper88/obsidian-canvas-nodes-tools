@@ -8,6 +8,7 @@ export interface CntSettings {
   badgePosition: "top-right" | "top-left" | "top-center";
   badgeHiddenByDefault: boolean;
   migrationNoticeShown: boolean;
+  linkedPillPosition: "top-left" | "top-right" | "bottom-left" | "bottom-right";
 }
 
 export const DEFAULT_SETTINGS: CntSettings = {
@@ -15,6 +16,7 @@ export const DEFAULT_SETTINGS: CntSettings = {
   badgePosition: "top-right",
   badgeHiddenByDefault: false,
   migrationNoticeShown: false,
+  linkedPillPosition: "top-right",
 };
 
 export async function migrateFromOldPlugin(
@@ -101,6 +103,24 @@ export class CntSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.badgeHiddenByDefault)
           .onChange(async (v) => {
             this.plugin.settings.badgeHiddenByDefault = v;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    containerEl.createEl("h3", { text: "Linked notes" });
+
+    new Setting(containerEl)
+      .setName("Posición del enlace saliente")
+      .setDesc("Posición de la pastilla de enlace dentro del nodo de texto.")
+      .addDropdown((d) =>
+        d
+          .addOption("top-right", "Top right")
+          .addOption("top-left", "Top left")
+          .addOption("bottom-right", "Bottom right")
+          .addOption("bottom-left", "Bottom left")
+          .setValue(this.plugin.settings.linkedPillPosition)
+          .onChange(async (v) => {
+            this.plugin.settings.linkedPillPosition = v as CntSettings["linkedPillPosition"];
             await this.plugin.saveSettings();
           }),
       );

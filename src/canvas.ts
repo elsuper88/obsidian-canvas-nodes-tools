@@ -11,6 +11,7 @@ export interface CanvasNodeMin {
     text?: string;
     titleMode?: boolean;
     description?: { text: string; color: string };
+    cntLinks?: string[];
   };
   setData(data: Record<string, unknown>): void;
   file?: TFile;
