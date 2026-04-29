@@ -52,6 +52,12 @@ export default class CanvasNodesToolsPlugin extends Plugin {
         return true;
       },
     });
+
+    // Default hotkeys declared in addCommand() are NOT auto-baked when a
+    // plugin is enabled mid-session. Force a rebake so Cmd+K starts
+    // working immediately (instead of requiring an Obsidian restart).
+    const hm = (this.app as unknown as { hotkeyManager?: { bake: () => void } }).hotkeyManager;
+    hm?.bake?.();
   }
 
   onunload(): void {
