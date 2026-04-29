@@ -9,17 +9,22 @@ import type CanvasNodesToolsPlugin from "../main";
 const BTN_ID = "cnt-popup-unlink";
 
 export class PopupMenuFeature {
+  private attachedCanvases = new WeakSet<CanvasMin>();
+  private observers = new WeakMap<CanvasMin, MutationObserver>();
+
   constructor(private plugin: CanvasNodesToolsPlugin) {}
 
   attachToCanvas(canvas: CanvasMin): void {
-    const flag = canvas as unknown as { _cntPopupAttached?: boolean };
-    if (flag._cntPopupAttached) return;
-    flag._cntPopupAttached = true;
+    if (this.attachedCanvases.has(canvas)) return;
+    this.attachedCanvases.add(canvas);
 
     const menuEl = canvas.menu?.menuEl;
     if (!menuEl) return;
+    // Disconnect a previous observer if any (e.g. plugin reload).
+    this.observers.get(canvas)?.disconnect();
     const obs = new MutationObserver(() => this.refresh(canvas, obs));
     obs.observe(menuEl, { childList: true });
+    this.observers.set(canvas, obs);
     this.plugin.register(() => obs.disconnect());
     this.refresh(canvas, obs);
   }

@@ -8,15 +8,19 @@ const PILL_CLASS = "cnt-link-pill";
 const ATTR_HIDE = "data-cnt-link-hidden";
 
 export class LinkedNotesFeature {
+  // Flags live on the feature instance, not on the canvas object, so they
+  // reset whenever the plugin is reloaded.
+  private attachedCanvases = new WeakSet<CanvasMin>();
+  private editObservers = new WeakMap<CanvasMin, MutationObserver>();
+
   constructor(private plugin: CanvasNodesToolsPlugin) {}
 
   attachToCanvas(canvas: CanvasMin): void {
-    const flag = canvas as unknown as { _cntLinkedAttached?: boolean };
-    if (flag._cntLinkedAttached) {
+    if (this.attachedCanvases.has(canvas)) {
       this.applyAll(canvas);
       return;
     }
-    flag._cntLinkedAttached = true;
+    this.attachedCanvases.add(canvas);
     this.applyAll(canvas);
 
     // Re-render pills only when a vault file is renamed.
@@ -25,15 +29,12 @@ export class LinkedNotesFeature {
     );
 
     // Observe each text-node-with-link to detect when it enters/leaves edit mode.
-    // While editing, the appended wikilink is removed from the source so the
-    // user doesn't see it in the editor. On exit, it is restored.
     this.installEditObserver(canvas);
   }
 
   private installEditObserver(canvas: CanvasMin): void {
-    const flag = canvas as unknown as { _cntEditObserved?: boolean };
-    if (flag._cntEditObserved) return;
-    flag._cntEditObserved = true;
+    // Disconnect a previous observer if reloaded.
+    this.editObservers.get(canvas)?.disconnect();
 
     const wrapper = canvas.wrapperEl;
     const observer = new MutationObserver((records) => {
@@ -57,6 +58,7 @@ export class LinkedNotesFeature {
       attributeOldValue: true,
       subtree: true,
     });
+    this.editObservers.set(canvas, observer);
     this.plugin.register(() => observer.disconnect());
   }
 
