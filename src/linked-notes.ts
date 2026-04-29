@@ -19,12 +19,84 @@ export class LinkedNotesFeature {
     flag._cntLinkedAttached = true;
     this.applyAll(canvas);
 
-    // Re-render pills only when a vault file is renamed (the displayed
-    // basename can change). We don't subscribe to metadataCache.changed
-    // because that fires for every edit and would cause unnecessary work.
+    // Re-render pills only when a vault file is renamed.
     this.plugin.registerEvent(
       this.plugin.app.vault.on("rename", () => this.applyAll(canvas)),
     );
+
+    // Observe each text-node-with-link to detect when it enters/leaves edit mode.
+    // While editing, the appended wikilink is removed from the source so the
+    // user doesn't see it in the editor. On exit, it is restored.
+    this.installEditObserver(canvas);
+  }
+
+  private installEditObserver(canvas: CanvasMin): void {
+    const flag = canvas as unknown as { _cntEditObserved?: boolean };
+    if (flag._cntEditObserved) return;
+    flag._cntEditObserved = true;
+
+    const wrapper = canvas.wrapperEl;
+    const observer = new MutationObserver((records) => {
+      for (const r of records) {
+        const target = r.target as HTMLElement;
+        if (!target?.classList?.contains("canvas-node")) continue;
+        if (r.attributeName !== "class") continue;
+        const wasEditing = (r.oldValue ?? "").includes("is-editing");
+        const isEditing = target.classList.contains("is-editing");
+        if (wasEditing === isEditing) continue;
+        const node = this.findNodeByEl(canvas, target);
+        if (!node) continue;
+        if (!wasEditing && isEditing) this.onEnterEdit(canvas, node);
+        else if (wasEditing && !isEditing) this.onExitEdit(canvas, node);
+      }
+    });
+
+    observer.observe(wrapper, {
+      attributes: true,
+      attributeFilter: ["class"],
+      attributeOldValue: true,
+      subtree: true,
+    });
+    this.plugin.register(() => observer.disconnect());
+  }
+
+  private onEnterEdit(canvas: CanvasMin, node: CanvasNodeMin): void {
+    const data = node.getData();
+    if (data.type !== "text") return;
+    const links = Array.isArray(data.cntLinks) ? (data.cntLinks as string[]) : [];
+    if (links.length === 0) return;
+
+    const cleanedText = this.stripAppendedLinks(
+      (data.text as string | undefined) ?? "",
+      links,
+    ).replace(/\s+$/, "");
+
+    // Avoid no-op writes that retrigger observers.
+    if (cleanedText === data.text) return;
+
+    node.setData({ ...data, text: cleanedText });
+  }
+
+  private onExitEdit(canvas: CanvasMin, node: CanvasNodeMin): void {
+    const data = node.getData();
+    if (data.type !== "text") return;
+    const links = Array.isArray(data.cntLinks) ? (data.cntLinks as string[]) : [];
+    if (links.length === 0) return;
+
+    const text = (data.text as string | undefined) ?? "";
+    const cleaned = this.stripAppendedLinks(text, links).replace(/\s+$/, "");
+    const restored = cleaned + `\n\n[[${links[0]}]]`;
+
+    if (restored === data.text) return;
+    node.setData({ ...data, text: restored });
+    canvas.requestSave?.();
+  }
+
+  private findNodeByEl(canvas: CanvasMin, el: HTMLElement): CanvasNodeMin | null {
+    for (const [, node] of canvas.nodes) {
+      if (node.nodeEl === el) return node;
+    }
+    return null;
   }
 
   applyAll(canvas: CanvasMin): void {
