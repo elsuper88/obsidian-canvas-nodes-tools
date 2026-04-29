@@ -70,22 +70,28 @@ export default class CanvasNodesToolsPlugin extends Plugin {
     const canvasLeaves = this.app.workspace.getLeavesOfType("canvas");
     if (canvasLeaves.length === 0) return null;
 
-    // 1. Prefer the leaf currently focused.
     const active = this.app.workspace.activeLeaf;
+
+    // 1. activeLeaf is a canvas AND has a selection — strongest match.
+    if (active && canvasLeaves.includes(active)) {
+      const v = active.view as unknown as CanvasViewMin;
+      if (v.canvas && (v.canvas.selection?.size ?? 0) > 0) return v.canvas;
+    }
+
+    // 2. Any open canvas with a selection (user picked a node before
+    //    focus moved to another panel, or to another canvas leaf).
+    for (const leaf of canvasLeaves) {
+      const c = (leaf.view as unknown as CanvasViewMin).canvas;
+      if (c && (c.selection?.size ?? 0) > 0) return c;
+    }
+
+    // 3. No selection: prefer the active leaf if it is a canvas.
     if (active && canvasLeaves.includes(active)) {
       const v = active.view as unknown as CanvasViewMin;
       if (v.canvas) return v.canvas;
     }
 
-    // 2. Fallback: a canvas with an active selection (user clicked a node
-    //    even if focus moved to another panel like Properties).
-    for (const leaf of canvasLeaves) {
-      const v = leaf.view as unknown as CanvasViewMin;
-      const c = v.canvas;
-      if (c && c.selection && c.selection.size > 0) return c;
-    }
-
-    // 3. Single canvas open: use it unconditionally.
+    // 4. Single canvas open and we got here: use it.
     if (canvasLeaves.length === 1) {
       const v = canvasLeaves[0].view as unknown as CanvasViewMin;
       return v.canvas ?? null;
