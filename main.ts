@@ -19,6 +19,28 @@ export default class CanvasNodesToolsPlugin extends Plugin {
   popupMenuFeature!: PopupMenuFeature;
 
   async onload(): Promise<void> {
+    // CRITICAL: addCommand must run synchronously inside onload — BEFORE any
+    // await — so Obsidian's hotkey registry picks up the default binding.
+    // If we register after an await (which yields the event loop), the
+    // default hotkey is silently dropped and Cmd+K never fires until the
+    // user assigns it manually in Settings → Hotkeys.
+    this.addCommand({
+      id: "link-note",
+      name: "Enlazar nota al text node seleccionado",
+      hotkeys: [{ modifiers: ["Mod"], key: "k" }],
+      checkCallback: (checking) => {
+        const canvas = this.getActiveCanvas();
+        if (!canvas) return false;
+        const node = this.getSingleSelectedNode(canvas);
+        if (!node) return false;
+        if (node.getData().type !== "text") return false;
+        if (checking) return true;
+        this.linkedNotesFeature.openSwitcher(canvas, node);
+        return true;
+      },
+    });
+
+    // Now async setup.
     await this.loadSettings();
     this.settings = await migrateFromOldPlugin(this.app, this.settings);
     await this.saveSettings();
@@ -37,25 +59,8 @@ export default class CanvasNodesToolsPlugin extends Plugin {
       this.app.workspace.on("active-leaf-change", () => this.scanCanvases()),
     );
 
-    this.addCommand({
-      id: "link-note",
-      name: "Enlazar nota al text node seleccionado",
-      hotkeys: [{ modifiers: ["Mod"], key: "k" }],
-      checkCallback: (checking) => {
-        const canvas = this.getActiveCanvas();
-        if (!canvas) return false;
-        const node = this.getSingleSelectedNode(canvas);
-        if (!node) return false;
-        if (node.getData().type !== "text") return false;
-        if (checking) return true;
-        this.linkedNotesFeature.openSwitcher(canvas, node);
-        return true;
-      },
-    });
-
-    // Default hotkeys declared in addCommand() are NOT auto-baked when a
-    // plugin is enabled mid-session. Force a rebake so Cmd+K starts
-    // working immediately (instead of requiring an Obsidian restart).
+    // Force a rebake — covers the case where the plugin is enabled
+    // mid-session and Obsidian's keymap is already cached from boot.
     const hm = (this.app as unknown as { hotkeyManager?: { bake: () => void } }).hotkeyManager;
     hm?.bake?.();
   }
