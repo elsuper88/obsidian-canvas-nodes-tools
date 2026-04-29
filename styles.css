@@ -385,11 +385,33 @@
   border-style: dashed;
 }
 
-/* Position variants */
-.canvas-node[data-cnt-link-pos="top-right"] > .cnt-link-pill { top: 6px; right: 8px; }
-.canvas-node[data-cnt-link-pos="top-left"] > .cnt-link-pill { top: 6px; left: 8px; }
-.canvas-node[data-cnt-link-pos="bottom-right"] > .cnt-link-pill { bottom: 6px; right: 8px; }
-.canvas-node[data-cnt-link-pos="bottom-left"] > .cnt-link-pill { bottom: 6px; left: 8px; }
+/* Position variants — pill sits OUTSIDE the node (like the description badge)
+   so it never overlaps the node's content and clicks on the node itself
+   don't accidentally hit the pill. */
+.canvas-node[data-cnt-link-pos="top-right"] > .cnt-link-pill {
+  top: calc(-1 * var(--size-4-1) * var(--zoom-multiplier, 1));
+  right: 0;
+  transform-origin: bottom right;
+  transform: translate(0, -100%) scale(var(--zoom-multiplier, 1));
+}
+.canvas-node[data-cnt-link-pos="top-left"] > .cnt-link-pill {
+  top: calc(-1 * var(--size-4-1) * var(--zoom-multiplier, 1));
+  left: 0;
+  transform-origin: bottom left;
+  transform: translate(0, -100%) scale(var(--zoom-multiplier, 1));
+}
+.canvas-node[data-cnt-link-pos="bottom-right"] > .cnt-link-pill {
+  bottom: calc(-1 * var(--size-4-1) * var(--zoom-multiplier, 1));
+  right: 0;
+  transform-origin: top right;
+  transform: translate(0, 100%) scale(var(--zoom-multiplier, 1));
+}
+.canvas-node[data-cnt-link-pos="bottom-left"] > .cnt-link-pill {
+  bottom: calc(-1 * var(--size-4-1) * var(--zoom-multiplier, 1));
+  left: 0;
+  transform-origin: top left;
+  transform: translate(0, 100%) scale(var(--zoom-multiplier, 1));
+}
 
 /* Hide the last paragraph of a text node's rendered content if it consists
    solely of a single internal link, AND the node is marked as having a

@@ -19,10 +19,9 @@ export class LinkedNotesFeature {
     flag._cntLinkedAttached = true;
     this.applyAll(canvas);
 
-    // Re-render pill text when the linked file is renamed/changed.
-    this.plugin.registerEvent(
-      this.plugin.app.metadataCache.on("changed", () => this.applyAll(canvas)),
-    );
+    // Re-render pills only when a vault file is renamed (the displayed
+    // basename can change). We don't subscribe to metadataCache.changed
+    // because that fires for every edit and would cause unnecessary work.
     this.plugin.registerEvent(
       this.plugin.app.vault.on("rename", () => this.applyAll(canvas)),
     );
