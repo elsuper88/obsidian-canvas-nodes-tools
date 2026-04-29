@@ -86,9 +86,10 @@
   --cnd-badge-bg: color-mix(in srgb, var(--cnd-color, var(--color-accent)) 14%, transparent);
 }
 
-/* Global hide toggle */
-.canvas-wrapper.cnd-hidden .canvas-node[data-cnd-text]::before {
-  display: none;
+/* Global hide toggle — hides BOTH description badges and link pills. */
+.canvas-wrapper.cnd-hidden .canvas-node[data-cnd-text]::before,
+.canvas-wrapper.cnd-hidden .canvas-node > .cnt-link-pill {
+  display: none !important;
 }
 
 /* Don't show the badge during presentation mode (Advanced Canvas

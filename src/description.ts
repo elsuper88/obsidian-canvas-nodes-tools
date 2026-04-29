@@ -123,7 +123,7 @@ export class DescriptionFeature {
       setIcon(btn, hidden ? "eye-off" : "eye");
       setTooltip(
         btn,
-        hidden ? "Show node descriptions" : "Hide node descriptions",
+        hidden ? "Show node decorations" : "Hide node decorations",
         { placement: "left" },
       );
     };
