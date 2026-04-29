@@ -1,7 +1,7 @@
 {
   "id": "obsidian-canvas-nodes-tools",
   "name": "Canvas Nodes Tools",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "minAppVersion": "1.5.0",
   "description": "Description badges and linked-notes pill for canvas text nodes. Cmd+K links a .md file to a text node; the link is a real outbound wikilink visible in outgoing-links sidebar.",
   "author": "Raulyn Polanco",

@@ -21,10 +21,7 @@ export class DescriptionFeature {
 
   attachToCanvas(canvas: CanvasMin): void {
     if (this.attachedCanvases.has(canvas)) {
-      // Re-render on revisit in case nodes were added.
-      this.applyAll(canvas);
-      this.injectCardMenuToggle(canvas);
-      this.injectPopupButton(canvas);
+      // Already attached — nothing to do. Existing observers handle node updates.
       return;
     }
     this.attachedCanvases.add(canvas);
@@ -149,15 +146,15 @@ export class DescriptionFeature {
     if (!menuEl) return;
     if (this.menuObservers.has(menuEl)) return;
 
-    const obs = new MutationObserver(() => this.injectPopupButton(canvas));
+    const obs = new MutationObserver(() => this.injectPopupButton(canvas, obs));
     obs.observe(menuEl, { childList: true });
     this.menuObservers.set(menuEl, obs);
     this.plugin.register(() => obs.disconnect());
 
-    this.injectPopupButton(canvas);
+    this.injectPopupButton(canvas, obs);
   }
 
-  private injectPopupButton(canvas: CanvasMin): void {
+  private injectPopupButton(canvas: CanvasMin, obs?: MutationObserver): void {
     const menuEl = canvas.menu?.menuEl;
     if (!menuEl) return;
     if (menuEl.querySelector("#cnt-popup-description-btn")) return;
@@ -176,7 +173,10 @@ export class DescriptionFeature {
       this.openModal(canvas, node);
     });
 
+    // Pause observation while we mutate so we don't re-trigger ourselves.
+    if (obs) obs.disconnect();
     menuEl.appendChild(btn);
+    if (obs) obs.observe(menuEl, { childList: true });
   }
 
   // -----------------------------------------------------------------------
